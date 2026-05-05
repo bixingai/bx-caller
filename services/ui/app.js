@@ -15,19 +15,26 @@ function setTab(tabId) {
 tabs.forEach((tab) => tab.addEventListener('click', () => setTab(tab.dataset.tab)));
 
 async function apiGet(path) {
-  const res = await fetch(`${apiBase.value}${path}`, {
-    headers: {
-      Authorization: `Bearer ${token.value}`,
-      'Content-Type': 'application/json',
-    },
-  });
+  try {
+    const res = await fetch(`${apiBase.value}${path}`, {
+      headers: {
+        Authorization: `Bearer ${token.value}`,
+        'Content-Type': 'application/json',
+      },
+    });
 
-  if (!res.ok) {
-    const text = await res.text();
-    throw new Error(`${res.status} ${text}`);
+    if (!res.ok) {
+      const text = await res.text();
+      throw new Error(`${res.status} ${text}`);
+    }
+
+    return res.json();
+  } catch (error) {
+    if (error instanceof TypeError) {
+      throw new Error('Cannot connect to API server. Verify URL and CORS configuration.');
+    }
+    throw error;
   }
-
-  return res.json();
 }
 
 connectBtn.addEventListener('click', async () => {

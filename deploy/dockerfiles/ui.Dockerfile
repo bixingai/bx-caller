@@ -1,7 +1,6 @@
-FROM python:3.10.13-slim
+FROM nginx:1.27-alpine
 
-WORKDIR /app
-COPY services/ui /app
+COPY services/ui /usr/share/nginx/html
 
 EXPOSE 3000
-CMD ["python", "-m", "http.server", "3000"]
+CMD ["nginx", "-g", "daemon off;"]

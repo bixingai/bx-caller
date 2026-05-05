@@ -96,7 +96,8 @@ async def create_agent(agent_data: CreateAgentPayload, _: None = Depends(require
     data_for_db = agent_data.agent_config.model_dump()
     data_for_db["assistant_status"] = "seeding"
     agent_prompts = agent_data.agent_prompts
-    logger.info(f"Preparing agent creation for {agent_uuid}")
+    logger.info(f"Preparing agent creation for {agent_uuid} with task_count={len(data_for_db.get('tasks', []))}")
+    logger.debug(f"Agent payload keys: {list(data_for_db.keys())}")
 
     if len(data_for_db["tasks"]) > 0:
         logger.info("Setting up follow up tasks")
@@ -138,7 +139,8 @@ async def edit_agent(agent_id: str, agent_data: CreateAgentPayload = Body(...), 
         new_data["assistant_status"] = "updated"
         agent_prompts = agent_data.agent_prompts
 
-        logger.info(f"Updating agent {agent_id}")
+        logger.info(f"Updating agent {agent_id} with task_count={len(new_data.get('tasks', []))}")
+        logger.debug(f"Updated payload keys: {list(new_data.keys())}")
 
         for index, task in enumerate(new_data.get("tasks", [])):
             if task.get("task_type") == "extraction":

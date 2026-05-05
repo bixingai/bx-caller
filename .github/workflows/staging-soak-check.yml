@@ -8,6 +8,9 @@ on:
         required: true
         default: "72"
 
+permissions:
+  contents: read
+
 jobs:
   soak-placeholder:
     runs-on: ubuntu-latest

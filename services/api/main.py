@@ -185,7 +185,7 @@ async def list_tenants(_: ApiContext = Depends(require_role("admin", "ops", "vie
 @app.post("/v1/workspaces")
 async def create_workspace(payload: WorkspaceCreate, _: ApiContext = Depends(require_role("admin", "ops"))):
     if payload.tenant_id not in tenants:
-        raise HTTPException(status_code=404, detail="tenant not found")
+        raise HTTPException(status_code=404, detail="Tenant not found")
 
     workspace_id = _new_id("ws")
     workspaces[workspace_id] = {
@@ -211,7 +211,7 @@ async def list_workspaces(
 @app.post("/v1/agents")
 async def create_agent(payload: AgentCreate, _: ApiContext = Depends(require_role("admin", "ops"))):
     if payload.workspace_id not in workspaces:
-        raise HTTPException(status_code=404, detail="workspace not found")
+        raise HTTPException(status_code=404, detail="Workspace not found")
 
     agent_id = _new_id("ag")
     agents[agent_id] = {
@@ -227,7 +227,9 @@ async def create_agent(payload: AgentCreate, _: ApiContext = Depends(require_rol
 
 
 @app.get("/v1/agents")
-async def list_agents(workspace_id: Optional[str] = None, _: ApiContext = Depends(require_role("admin", "ops", "viewer"))):
+async def list_agents(
+    workspace_id: Optional[str] = None, _: ApiContext = Depends(require_role("admin", "ops", "viewer"))
+):
     items = list(agents.values())
     if workspace_id:
         items = [item for item in items if item["workspace_id"] == workspace_id]
@@ -242,9 +244,9 @@ async def create_call(
     _: ApiContext = Depends(require_role("admin", "ops")),
 ):
     if payload.workspace_id not in workspaces:
-        raise HTTPException(status_code=404, detail="workspace not found")
+        raise HTTPException(status_code=404, detail="Workspace not found")
     if payload.agent_id not in agents:
-        raise HTTPException(status_code=404, detail="agent not found")
+        raise HTTPException(status_code=404, detail="Agent not found")
 
     if not idempotency_key:
         idempotency_key = secrets.token_hex(16)
@@ -270,7 +272,9 @@ async def create_call(
 
 
 @app.get("/v1/calls")
-async def list_calls(workspace_id: Optional[str] = None, _: ApiContext = Depends(require_role("admin", "ops", "viewer"))):
+async def list_calls(
+    workspace_id: Optional[str] = None, _: ApiContext = Depends(require_role("admin", "ops", "viewer"))
+):
     items = list(calls.values())
     if workspace_id:
         items = [item for item in items if item["workspace_id"] == workspace_id]
@@ -288,8 +292,8 @@ async def telephony_webhook(
         raise HTTPException(status_code=503, detail="webhook secret not configured")
 
     body = await request.body()
-    expected = secrets.compare_digest(x_bx_signature, _sign_payload(shared_secret, body))
-    if not expected:
+    signature_valid = secrets.compare_digest(x_bx_signature, _sign_payload(shared_secret, body))
+    if not signature_valid:
         raise HTTPException(status_code=401, detail="invalid signature")
 
     return {"status": "accepted"}
