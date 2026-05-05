@@ -119,6 +119,19 @@ docker compose up -d bolna-app plivo-app
 
 Once the docker containers are up, you can now start to create your agents and instruct them to initiate calls.
 
+## Productization scaffolds (secure set-and-forget path)
+
+This repository now includes initial production scaffolds:
+
+1. `services/api` – secured control-plane API layer (auth, CORS allowlist, security headers, rate limiting, idempotency, tenant/workspace/agent/call endpoints)
+2. `services/ui` – dedicated web console skeleton for call-center operations
+3. `deploy/docker-compose.staged.yml` – staged deployment scaffolding for `dev`, `staging`, and `prod` profiles
+4. `docs/release/develop-delivery-track.md` – `develop` branch delivery track and merge-to-`main` gates
+
+For branch governance, run and enforce the checks defined in:
+- `.github/workflows/develop-gates.yml`
+- `.github/workflows/codeql-develop.yml`
+
 
 ## Example agents to create, use and start making calls
 You may try out different agents from [example.bolna.dev](https://examples.bolna.dev).

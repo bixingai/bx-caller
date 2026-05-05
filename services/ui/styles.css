@@ -1,0 +1,80 @@
+:root {
+  color-scheme: dark;
+  font-family: Inter, system-ui, sans-serif;
+}
+
+body {
+  margin: 0;
+  padding: 0 1rem 2rem;
+  background: #0f172a;
+  color: #e2e8f0;
+}
+
+header {
+  padding: 1rem 0;
+}
+
+.auth-panel {
+  display: grid;
+  gap: 0.5rem;
+  max-width: 520px;
+  margin-bottom: 1rem;
+}
+
+input,
+button {
+  padding: 0.6rem;
+  border-radius: 0.4rem;
+  border: 1px solid #334155;
+  background: #1e293b;
+  color: #e2e8f0;
+}
+
+button {
+  cursor: pointer;
+}
+
+nav {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
+}
+
+nav button.active {
+  border-color: #38bdf8;
+}
+
+.tab {
+  display: none;
+  background: #111827;
+  border: 1px solid #334155;
+  border-radius: 0.5rem;
+  padding: 1rem;
+}
+
+.tab.active {
+  display: block;
+}
+
+pre {
+  background: #020617;
+  border: 1px solid #1e293b;
+  padding: 0.8rem;
+  border-radius: 0.4rem;
+  overflow: auto;
+}
+
+.placeholder {
+  border: 1px dashed #475569;
+  padding: 1rem;
+  border-radius: 0.4rem;
+}
+
+.ok {
+  color: #22c55e;
+}
+
+.error {
+  color: #ef4444;
+}
