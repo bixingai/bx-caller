@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>BX Caller Console</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <header>
+      <h1>BX Caller Console</h1>
+      <p>Out-of-the-box call-center control panel</p>
+    </header>
+
+    <section class="auth-panel">
+      <label for="apiBase">API Base URL</label>
+      <input id="apiBase" value="" placeholder="https://your-api-host" />
+      <label for="token">Bearer Token</label>
+      <input id="token" placeholder="Enter your bearer token" />
+      <button id="connectBtn">Connect</button>
+      <span id="authStatus"></span>
+    </section>
+
+    <nav>
+      <button data-tab="agents">Agents</button>
+      <button data-tab="calls">Calls</button>
+      <button data-tab="transcripts">Transcripts</button>
+      <button data-tab="analytics">Analytics</button>
+      <button data-tab="admin">Admin</button>
+    </nav>
+
+    <main>
+      <section id="agents" class="tab active">
+        <h2>Agent Builder</h2>
+        <p>Create and review workspace agents.</p>
+        <pre id="agentsData">Connect to load data.</pre>
+      </section>
+
+      <section id="calls" class="tab">
+        <h2>Campaign & Calls</h2>
+        <p>Queue outbound calls and monitor states.</p>
+        <pre id="callsData">Connect to load data.</pre>
+      </section>
+
+      <section id="transcripts" class="tab">
+        <h2>Transcripts / QA Review</h2>
+        <p>Review transcript artifacts and outcomes.</p>
+        <div class="placeholder">Transcript timeline placeholder</div>
+      </section>
+
+      <section id="analytics" class="tab">
+        <h2>Analytics</h2>
+        <p>Latency, quality, and outcome metrics dashboard.</p>
+        <div class="placeholder">KPI widgets placeholder</div>
+      </section>
+
+      <section id="admin" class="tab">
+        <h2>Admin Settings</h2>
+        <ul>
+          <li>Role based access policy controls</li>
+          <li>Retention policy controls</li>
+          <li>Webhook and integration keys</li>
+        </ul>
+      </section>
+    </main>
+
+    <script src="./app.js"></script>
+  </body>
+</html>

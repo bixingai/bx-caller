@@ -1,0 +1,22 @@
+name: Staging Soak Check
+
+on:
+  workflow_dispatch:
+    inputs:
+      soak_hours:
+        description: "Staging soak duration hours"
+        required: true
+        default: "72"
+
+permissions:
+  contents: read
+
+jobs:
+  soak-placeholder:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Soak criteria reminder
+        run: |
+          echo "Ensure staging has been stable for ${SOAK_HOURS:-72}h before merge to main."
+        env:
+          SOAK_HOURS: ${{ github.event.inputs.soak_hours }}

@@ -1,0 +1,28 @@
+version: '3.9'
+
+services:
+  bx-api:
+    image: bx-caller-api:${BX_RELEASE_TAG:-dev}
+    build:
+      context: ..
+      dockerfile: deploy/dockerfiles/api.Dockerfile
+    env_file:
+      - ../services/api/.env.sample
+    ports:
+      - "7001:7001"
+    profiles: ["dev", "staging", "prod"]
+
+  bx-ui:
+    image: bx-caller-ui:${BX_RELEASE_TAG:-dev}
+    build:
+      context: ..
+      dockerfile: deploy/dockerfiles/ui.Dockerfile
+    ports:
+      - "3000:80"
+    profiles: ["dev", "staging", "prod"]
+
+  redis:
+    image: redis:7.2.5
+    ports:
+      - "6379:6379"
+    profiles: ["dev", "staging", "prod"]
