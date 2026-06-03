@@ -14,6 +14,22 @@ from pydantic import BaseModel
 
 from app.api.deps import PortalUser, get_current_user, get_redis, get_websocket_user
 from app.config import settings
+from app.launch import (
+    AuditRecord,
+    CallSessionRecord,
+    CampaignPayload,
+    CampaignRecord,
+    ContactPayload,
+    ContactRecord,
+    LaunchCampaignPayload,
+    append_audit,
+    delete_record,
+    get_record,
+    list_records,
+    provider_readiness,
+    set_record,
+    utc_now,
+)
 from app.storage import create_agent_store
 from app.telephony import TelephonyProvider, get_telephony_provider
 from bolna.helpers.logger_config import configure_logger
@@ -42,6 +58,20 @@ def _agent_pattern(agent_id: str) -> str:
 
 def _strip_agent_key(key: str) -> str:
     return key.rsplit(":", 1)[-1]
+
+
+def _model_dump(record: Any) -> dict[str, Any]:
+    return record.model_dump() if hasattr(record, "model_dump") else dict(record)
+
+
+def _call_result_dict(result: Any) -> dict[str, str]:
+    if hasattr(result, "__dataclass_fields__"):
+        return {
+            "provider": result.provider,
+            "call_id": result.call_id,
+            "status": result.status,
+        }
+    return dict(result)
 
 
 async def _store_agent_prompts(file_key: str, file_data: dict[str, dict[str, str]] | None) -> None:
@@ -234,6 +264,228 @@ async def get_all_agents(
         if data:
             agents.append({"agent_id": _strip_agent_key(key), "data": json.loads(data)})
     return {"agents": agents}
+
+
+@app.get("/api/provider-readiness")
+async def get_provider_readiness(user: PortalUser = Depends(get_current_user)):
+    del user
+    return provider_readiness()
+
+
+@app.get("/api/contacts")
+async def list_contacts(
+    user: PortalUser = Depends(get_current_user),
+    redis_client: redis.Redis = Depends(get_redis),
+):
+    contacts = await list_records(redis_client, "contact", user.portal_user_id, ContactRecord)
+    return {"contacts": [_model_dump(contact) for contact in contacts]}
+
+
+@app.post("/api/contacts")
+async def create_contact(
+    payload: ContactPayload,
+    user: PortalUser = Depends(get_current_user),
+    redis_client: redis.Redis = Depends(get_redis),
+):
+    now = utc_now()
+    contact = ContactRecord(id=str(uuid.uuid4()), created_at=now, updated_at=now, **payload.model_dump())
+    await set_record(redis_client, "contact", user.portal_user_id, contact)
+    await append_audit(redis_client, user.portal_user_id, "contact.created", contact.id)
+    return _model_dump(contact)
+
+
+@app.get("/api/contacts/{contact_id}")
+async def get_contact(
+    contact_id: str,
+    user: PortalUser = Depends(get_current_user),
+    redis_client: redis.Redis = Depends(get_redis),
+):
+    contact = await get_record(redis_client, "contact", user.portal_user_id, contact_id, ContactRecord)
+    if not contact:
+        raise HTTPException(status_code=404, detail="Contact not found")
+    return _model_dump(contact)
+
+
+@app.put("/api/contacts/{contact_id}")
+async def update_contact(
+    contact_id: str,
+    payload: ContactPayload,
+    user: PortalUser = Depends(get_current_user),
+    redis_client: redis.Redis = Depends(get_redis),
+):
+    existing = await get_record(redis_client, "contact", user.portal_user_id, contact_id, ContactRecord)
+    if not existing:
+        raise HTTPException(status_code=404, detail="Contact not found")
+    contact = ContactRecord(
+        id=contact_id,
+        created_at=existing.created_at,
+        updated_at=utc_now(),
+        **payload.model_dump(),
+    )
+    await set_record(redis_client, "contact", user.portal_user_id, contact)
+    await append_audit(redis_client, user.portal_user_id, "contact.updated", contact.id)
+    return _model_dump(contact)
+
+
+@app.delete("/api/contacts/{contact_id}")
+async def delete_contact(
+    contact_id: str,
+    user: PortalUser = Depends(get_current_user),
+    redis_client: redis.Redis = Depends(get_redis),
+):
+    deleted = await delete_record(redis_client, "contact", user.portal_user_id, contact_id)
+    if not deleted:
+        raise HTTPException(status_code=404, detail="Contact not found")
+    await append_audit(redis_client, user.portal_user_id, "contact.deleted", contact_id)
+    return {"contact_id": contact_id, "state": "deleted"}
+
+
+@app.get("/api/campaigns")
+async def list_campaigns(
+    user: PortalUser = Depends(get_current_user),
+    redis_client: redis.Redis = Depends(get_redis),
+):
+    campaigns = await list_records(redis_client, "campaign", user.portal_user_id, CampaignRecord)
+    return {"campaigns": [_model_dump(campaign) for campaign in campaigns]}
+
+
+@app.post("/api/campaigns")
+async def create_campaign(
+    payload: CampaignPayload,
+    user: PortalUser = Depends(get_current_user),
+    redis_client: redis.Redis = Depends(get_redis),
+):
+    now = utc_now()
+    campaign = CampaignRecord(id=str(uuid.uuid4()), created_at=now, updated_at=now, **payload.model_dump())
+    await set_record(redis_client, "campaign", user.portal_user_id, campaign)
+    await append_audit(redis_client, user.portal_user_id, "campaign.created", campaign.id)
+    return _model_dump(campaign)
+
+
+@app.get("/api/campaigns/{campaign_id}")
+async def get_campaign(
+    campaign_id: str,
+    user: PortalUser = Depends(get_current_user),
+    redis_client: redis.Redis = Depends(get_redis),
+):
+    campaign = await get_record(redis_client, "campaign", user.portal_user_id, campaign_id, CampaignRecord)
+    if not campaign:
+        raise HTTPException(status_code=404, detail="Campaign not found")
+    return _model_dump(campaign)
+
+
+@app.put("/api/campaigns/{campaign_id}")
+async def update_campaign(
+    campaign_id: str,
+    payload: CampaignPayload,
+    user: PortalUser = Depends(get_current_user),
+    redis_client: redis.Redis = Depends(get_redis),
+):
+    existing = await get_record(redis_client, "campaign", user.portal_user_id, campaign_id, CampaignRecord)
+    if not existing:
+        raise HTTPException(status_code=404, detail="Campaign not found")
+    campaign = CampaignRecord(
+        id=campaign_id,
+        status=existing.status,
+        created_at=existing.created_at,
+        updated_at=utc_now(),
+        launched_at=existing.launched_at,
+        **payload.model_dump(),
+    )
+    await set_record(redis_client, "campaign", user.portal_user_id, campaign)
+    await append_audit(redis_client, user.portal_user_id, "campaign.updated", campaign.id)
+    return _model_dump(campaign)
+
+
+@app.post("/api/campaigns/{campaign_id}/launch")
+async def launch_campaign(
+    campaign_id: str,
+    payload: LaunchCampaignPayload,
+    user: PortalUser = Depends(get_current_user),
+    redis_client: redis.Redis = Depends(get_redis),
+    telephony_provider: TelephonyProvider = Depends(get_telephony_provider),
+):
+    if not payload.compliance_ack:
+        raise HTTPException(status_code=400, detail="Compliance acknowledgment is required")
+    if payload.provider and payload.provider.lower() != telephony_provider.name:
+        raise HTTPException(status_code=400, detail=f"Unsupported telephony provider: {payload.provider}")
+
+    campaign = await get_record(redis_client, "campaign", user.portal_user_id, campaign_id, CampaignRecord)
+    if not campaign:
+        raise HTTPException(status_code=404, detail="Campaign not found")
+    if not campaign.contact_ids:
+        raise HTTPException(status_code=400, detail="Campaign has no contacts")
+    if not await redis_client.exists(_agent_key(user.portal_user_id, campaign.agent_id)):
+        raise HTTPException(status_code=404, detail="Agent not found")
+
+    contacts = []
+    for contact_id in campaign.contact_ids:
+        contact = await get_record(redis_client, "contact", user.portal_user_id, contact_id, ContactRecord)
+        if not contact:
+            raise HTTPException(status_code=400, detail="Campaign references missing contacts")
+        contacts.append(contact)
+
+    readiness = provider_readiness()
+    if not readiness["ready"]:
+        raise HTTPException(status_code=400, detail={"message": "Telephony provider is not ready", **readiness})
+
+    now = utc_now()
+    sessions = []
+    for contact in contacts:
+        call_result = _call_result_dict(telephony_provider.place_outbound_call(campaign.agent_id, contact.phone_number))
+        session = CallSessionRecord(
+            id=str(uuid.uuid4()),
+            campaign_id=campaign.id,
+            agent_id=campaign.agent_id,
+            contact_id=contact.id,
+            contact_name=contact.name,
+            to_number=contact.phone_number,
+            provider=call_result["provider"],
+            provider_call_id=call_result["call_id"],
+            status=call_result["status"],
+            created_at=now,
+            updated_at=now,
+        )
+        await set_record(redis_client, "call_session", user.portal_user_id, session)
+        await append_audit(
+            redis_client,
+            user.portal_user_id,
+            "call_session.created",
+            session.id,
+            {"campaign_id": campaign.id, "contact_id": contact.id},
+        )
+        sessions.append(session)
+
+    campaign.status = "launched"
+    campaign.launched_at = now
+    campaign.updated_at = now
+    await set_record(redis_client, "campaign", user.portal_user_id, campaign)
+    await append_audit(
+        redis_client,
+        user.portal_user_id,
+        "campaign.launched",
+        campaign.id,
+        {"session_count": len(sessions)},
+    )
+    return {"campaign": _model_dump(campaign), "sessions": [_model_dump(session) for session in sessions]}
+
+
+@app.get("/api/call-sessions")
+async def list_call_sessions(
+    user: PortalUser = Depends(get_current_user),
+    redis_client: redis.Redis = Depends(get_redis),
+):
+    sessions = await list_records(redis_client, "call_session", user.portal_user_id, CallSessionRecord)
+    return {"call_sessions": [_model_dump(session) for session in sessions]}
+
+
+@app.get("/api/audit-logs")
+async def list_audit_logs(
+    user: PortalUser = Depends(get_current_user),
+    redis_client: redis.Redis = Depends(get_redis),
+):
+    audit_logs = await list_records(redis_client, "audit", user.portal_user_id, AuditRecord)
+    return {"audit_logs": [_model_dump(item) for item in audit_logs]}
 
 
 @app.post("/api/calls/outbound")
