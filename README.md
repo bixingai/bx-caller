@@ -61,11 +61,19 @@ Useful endpoints:
 
 - `GET /api/health`
 - `GET /api/health/ready`
+- `GET /api/provider-readiness`
 - `POST /api/agent`
 - `GET /api/agent/{agent_id}`
 - `PUT /api/agent/{agent_id}`
 - `DELETE /api/agent/{agent_id}`
 - `GET /api/agents`
+- `GET|POST /api/contacts`
+- `GET|PUT|DELETE /api/contacts/{contact_id}`
+- `GET|POST /api/campaigns`
+- `GET|PUT /api/campaigns/{campaign_id}`
+- `POST /api/campaigns/{campaign_id}/launch`
+- `GET /api/call-sessions`
+- `GET /api/audit-logs`
 - `POST /api/calls/outbound`
 - `GET|POST /api/telephony/twilio/connect`
 - `WS /chat/v1/{agent_id}`
@@ -140,7 +148,9 @@ Branching rules live in
 MVP frontend notes:
 
 - Agent Builder uses real backend health and agent CRUD APIs.
-- Executive, Live, CRM Desk, and Campaign workspaces are scaffolded with typed
-  mock services.
-- Campaign launch controls are intentionally disabled until a real campaign
-  backend exists.
+- Campaign Control uses persisted contacts, campaigns, provider readiness, and
+  explicit compliance acknowledgment before placing outbound calls.
+- Live Cockpit, CRM Desk, and Executive workspaces read persisted launch
+  records, call sessions, and audit logs.
+- Remaining advanced call-center scope is transcript persistence, pacing/retry
+  workers, CRM integrations, enterprise roles, and analytics aggregation.

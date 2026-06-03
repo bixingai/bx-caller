@@ -1,7 +1,7 @@
 # Frontend Architecture
 
 Date: 2026-05-09
-Status: Draft for review
+Status: Updated through Production MVP Launch on 2026-06-03
 
 ## Decision
 
@@ -91,11 +91,11 @@ Responsibility:
 
 Service dependency:
 
-- `ExecutiveMetricsService`
+- `LaunchService`
 
 MVP adapter:
 
-- mock data plus real backend health.
+- real contacts, campaigns, call sessions, audit logs, plus backend health.
 
 ### Live Cockpit
 
@@ -108,11 +108,11 @@ Responsibility:
 
 Service dependency:
 
-- `LiveCallService`
+- `LaunchService`
 
 MVP adapter:
 
-- mock data.
+- real call session records created by campaign launch.
 
 ### CRM Call Desk
 
@@ -125,28 +125,31 @@ Responsibility:
 
 Service dependency:
 
-- `ContactService`
+- `LaunchService`
 
 MVP adapter:
 
-- mock data.
+- real contacts and latest call session status.
 
 ### Campaign Control
 
 Responsibility:
 
 - campaign list
-- campaign details
-- audience/script/agent preview
-- pacing/compliance scaffold
+- contact creation
+- campaign creation
+- agent assignment
+- provider readiness
+- compliance acknowledgment
+- controlled launch
 
 Service dependency:
 
-- `CampaignService`
+- `LaunchService`
 
 MVP adapter:
 
-- mock data; no dialing side effects.
+- real contacts, campaigns, and outbound launch through the provider boundary.
 
 ## Service Interfaces
 
@@ -192,6 +195,21 @@ interface AgentService {
   createAgent(draft: AgentDraft): Promise<{ id: string }>;
   updateAgent(id: string, draft: AgentDraft): Promise<void>;
   deleteAgent(id: string): Promise<void>;
+}
+```
+
+### `LaunchService`
+
+```ts
+interface LaunchService {
+  listContacts(): Promise<Contact[]>;
+  createContact(draft: ContactDraft): Promise<Contact>;
+  listCampaigns(): Promise<Campaign[]>;
+  createCampaign(draft: CampaignDraft): Promise<Campaign>;
+  launchCampaign(id: string, complianceAck: boolean): Promise<CampaignLaunchResult>;
+  listCallSessions(): Promise<CallSession[]>;
+  listAuditLogs(): Promise<AuditLog[]>;
+  getProviderReadiness(): Promise<ProviderReadiness>;
 }
 ```
 
@@ -276,7 +294,7 @@ Component tests:
 - agent list loading/error/empty states
 - create/edit/delete forms
 - health status panel
-- campaign mock action disabled state
+- campaign launch disabled until provider readiness and compliance checks pass
 
 End-to-end smoke tests:
 
@@ -304,4 +322,3 @@ Host nginx should route:
 - `/bx-caller/api/*` to API, stripping `/bx-caller`
 - `/bx-caller/chat/*` to API WebSocket, stripping `/bx-caller`
 - `/bx-caller/*` to frontend, preserving `/bx-caller` for Next basePath
-

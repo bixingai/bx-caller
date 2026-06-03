@@ -1,7 +1,7 @@
 # AI Call Center Staged Development Roadmap
 
 Date: 2026-05-09
-Status: Draft for review
+Status: Updated through Production MVP Launch on 2026-06-03
 
 ## Development Philosophy
 
@@ -99,34 +99,38 @@ Exit criteria:
 
 ## Stage 4: Outbound Campaigns
 
+Status: MVP implemented on 2026-06-03.
+
 Scope:
 
 - campaign CRUD
-- audience import
-- compliance checks
-- pacing controls
+- persisted contacts as MVP audience records
+- compliance acknowledgment check
 - campaign-to-agent assignment
 - dialing integration
-- outcome tracking
+- call session creation for outbound attempts
+- audit logging for launch operations
 
 Backend needs:
 
-- campaign tables
-- audience tables
-- dialer job orchestration
-- DNC/compliance checks
-- call result ingestion
+- Postgres-backed campaign/contact tables for scale
+- dialer job orchestration for pacing and retries
+- DNC/compliance list checks
+- provider callback ingestion for final call results
 
 Exit criteria:
 
-- Marketing manager can launch a controlled outbound AI campaign.
+- Marketing manager can launch a controlled outbound AI campaign through the
+  provider boundary after confirming compliance.
 
 ## Stage 5: CRM Desk And Follow-Up
 
+Status: MVP contact and recent-session view implemented on 2026-06-03.
+
 Scope:
 
-- contact model
-- call history
+- persisted contact model
+- call history from launch session records
 - call summaries
 - task creation
 - manual notes
@@ -143,6 +147,8 @@ Exit criteria:
 - Rep can review customer context and complete follow-up workflows.
 
 ## Stage 6: Analytics, QA, And Executive Reporting
+
+Status: MVP operational metrics and audit trail implemented on 2026-06-03.
 
 Scope:
 
@@ -180,4 +186,3 @@ Exit criteria:
 
 - App can support production call-center operations beyond a single internal
   team.
-

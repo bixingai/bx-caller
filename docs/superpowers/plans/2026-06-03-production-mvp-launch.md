@@ -31,11 +31,11 @@
 - Create: `app/launch.py`
 - Modify: `app/main.py`
 
-- [ ] **Step 1: Write failing backend API tests**
+- [x] **Step 1: Write failing backend API tests**
 
 Create tests covering contact CRUD, campaign creation, launch validation, call session creation, audit logging, and provider readiness.
 
-- [ ] **Step 2: Run tests and verify RED**
+- [x] **Step 2: Run tests and verify RED**
 
 Run:
 
@@ -45,15 +45,15 @@ pytest tests/test_launch_operations.py -q
 
 Expected: fail because launch endpoints do not exist.
 
-- [ ] **Step 3: Implement launch models and storage helpers**
+- [x] **Step 3: Implement launch models and storage helpers**
 
 Add portal-user-scoped key helpers, JSON CRUD helpers, and audit append helper.
 
-- [ ] **Step 4: Add FastAPI routes**
+- [x] **Step 4: Add FastAPI routes**
 
 Wire contacts, campaigns, call sessions, audit logs, provider readiness, and campaign launch routes.
 
-- [ ] **Step 5: Run backend tests**
+- [x] **Step 5: Run backend tests**
 
 Run:
 
@@ -70,11 +70,11 @@ Expected: pass.
 - Create: `frontend/src/services/launch-service.ts`
 - Create: `frontend/src/services/launch-service.test.ts`
 
-- [ ] **Step 1: Write failing service tests**
+- [x] **Step 1: Write failing service tests**
 
 Cover mapping for contacts, campaigns, sessions, audit logs, provider readiness, and campaign launch.
 
-- [ ] **Step 2: Run tests and verify RED**
+- [x] **Step 2: Run tests and verify RED**
 
 Run:
 
@@ -84,11 +84,11 @@ cd frontend && npm test -- --run src/services/launch-service.test.ts
 
 Expected: fail because service does not exist.
 
-- [ ] **Step 3: Implement launch service**
+- [x] **Step 3: Implement launch service**
 
 Add `createLaunchService(fetcher = apiFetch)` with typed methods for all launch endpoints.
 
-- [ ] **Step 4: Run service tests**
+- [x] **Step 4: Run service tests**
 
 Run:
 
@@ -107,19 +107,19 @@ Expected: pass.
 - Modify: `frontend/src/features/executive/executive-workspace.tsx`
 - Test: existing and new component tests under `frontend/src/features`
 
-- [ ] **Step 1: Write component tests for launch workflow**
+- [x] **Step 1: Write component tests for launch workflow**
 
 Cover campaign launch disabled until compliance acknowledgment and session list rendering.
 
-- [ ] **Step 2: Run tests and verify RED**
+- [x] **Step 2: Run tests and verify RED**
 
 Run targeted Vitest tests for changed workspaces.
 
-- [ ] **Step 3: Implement real launch workspace UI**
+- [x] **Step 3: Implement real launch workspace UI**
 
 Use launch service data and preserve safe disabled states when provider readiness is incomplete.
 
-- [ ] **Step 4: Run frontend tests and typecheck**
+- [x] **Step 4: Run frontend tests and typecheck**
 
 Run:
 
@@ -137,11 +137,11 @@ Expected: pass.
 - Modify: `README.md`
 - Modify: `docs/product/staged-roadmap.md`
 
-- [ ] **Step 1: Document launch endpoints and status**
+- [x] **Step 1: Document launch endpoints and status**
 
 Add contact, campaign, call session, audit, and provider readiness endpoints.
 
-- [ ] **Step 2: Run full verification**
+- [x] **Step 2: Run full verification**
 
 Run:
 
@@ -155,7 +155,7 @@ docker compose config
 
 Expected: all pass.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 Commit with:
 
