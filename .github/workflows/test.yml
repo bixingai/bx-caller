@@ -28,3 +28,31 @@ jobs:
           PORTAL_JWT_SECRET: ci-only-secret-ci-only-secret-123456
           DEV_BYPASS_AUTH: "1"
         run: pytest
+
+  frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        working-directory: frontend
+        run: npm ci
+
+      - name: Run tests
+        working-directory: frontend
+        run: npm test -- --run
+
+      - name: Build
+        working-directory: frontend
+        run: npm run build
+
+      - name: Typecheck
+        working-directory: frontend
+        run: npm run typecheck

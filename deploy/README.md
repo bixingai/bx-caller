@@ -29,9 +29,31 @@ Production compose expects published images unless deployment automation
 overrides them:
 
 ```text
-${REGISTRY:-docker.io}/pmtmyaggy/bx-caller-api:${IMAGE_TAG:-prod}
-${REGISTRY:-docker.io}/pmtmyaggy/bx-caller-web:${IMAGE_TAG:-prod}
+${REGISTRY:-docker.io}/${IMAGE_NAMESPACE:-pmtmyaggy}/bx-caller-api:${IMAGE_TAG:-prod}
+${REGISTRY:-docker.io}/${IMAGE_NAMESPACE:-pmtmyaggy}/bx-caller-web:${IMAGE_TAG:-prod}
 ```
+
+## GitHub deployment configuration
+
+Set these repository variables for Tencent Cloud Container Registry:
+
+```text
+CONTAINER_REGISTRY=ccr.ccs.tencentyun.com
+IMAGE_NAMESPACE=<tencent-registry-namespace>
+```
+
+Set these repository secrets:
+
+```text
+REGISTRY_USERNAME=<tencent-registry-username>
+REGISTRY_PASSWORD=<tencent-registry-password-or-token>
+TENCENT_CLOUD_HOST=<server-ip-or-hostname>
+TENCENT_CLOUD_USER=<ssh-user>
+DEPLOY_SSH_KEY=<private-key-for-server>
+```
+
+The workflow keeps backwards-compatible `DOCKERHUB_USERNAME`,
+`DOCKERHUB_TOKEN`, `SERVER_HOST`, and `SERVER_USER` fallbacks.
 
 If external telephony callbacks cannot carry the portal cookie, set
 `WEBSOCKET_ACCESS_TOKEN` and append `?token=<value>` to `/bx-caller/chat/v1/{agent_id}`
