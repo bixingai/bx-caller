@@ -194,6 +194,7 @@ def _make_task_manager(agent=None, **overrides):
     interruption_manager.get_next_sequence_id.return_value = 1
     interruption_manager.get_turn_id.return_value = "turn-1"
     interruption_manager.is_valid_sequence.return_value = True
+    interruption_manager.is_user_speaking.return_value = False
     tm.interruption_manager = interruption_manager
 
     tm.tools = {
@@ -209,6 +210,9 @@ def _make_task_manager(agent=None, **overrides):
     tm._component_error = None
     tm._error_logged = False
     tm._end_of_conversation_in_progress = False
+    tm._response_turn_id = 0
+    tm._turn_msg_map = {}
+    tm._pending_assistant_history = {}
     tm.hangup_detail = None
     tm.event_listener_task = None
 
@@ -552,17 +556,18 @@ class TestProactiveGenerateLLMNode:
 
 class TestGenerateProactive:
     @pytest.mark.asyncio
-    async def test_sends_bos_and_eos(self):
-        """Should send BOS and EOS packets to output handler."""
+    async def test_runs_llm_task_with_event_proactive_packet(self):
+        """Should delegate event-triggered generation to the LLM pipeline."""
         agent = _make_graph_agent()
         tm = _make_task_manager(agent=agent)
         tm._run_llm_task = AsyncMock()
 
         await tm._generate_proactive()
 
-        output_calls = tm.tools["output"].handle.call_args_list
-        assert output_calls[0][0][0]["data"] == "<beginning_of_stream>"
-        assert output_calls[-1][0][0]["data"] == "<end_of_stream>"
+        tm._run_llm_task.assert_awaited_once()
+        message = tm._run_llm_task.await_args.args[0]
+        assert message["data"] == ""
+        assert message["meta_info"]["message_category"] == "event_proactive"
 
     @pytest.mark.asyncio
     async def test_sets_response_in_pipeline(self):

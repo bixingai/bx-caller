@@ -5,11 +5,11 @@ requires      = ["setuptools>=61.0.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "bolna"
-version = "0.10.34"
+name = "bx-caller"
+version = "0.1.0"
 readme = "README.md"
 authors = [
-    { name = "Prateek Sachan", email = "ps@prateeksachan.com" }
+    { name = "BixingAI" }
 ]
 license = { file = "LICENSE" }
 classifiers = [
@@ -23,8 +23,8 @@ requires-python = ">=3.10"
 [project.optional-dependencies]
 dev = ["pip-tools", "pre-commit", "pytest", "pytest-asyncio", "ruff"]
 
-[tool.setuptools]
-package-dir = {"bolna" = "bolna"}
+[tool.setuptools.packages.find]
+include = ["app*", "bolna*"]
 
 [tool.setuptools.dynamic]
 dependencies = {file = ["requirements.txt"]}
@@ -50,3 +50,6 @@ version_files = [
     "bolna/__init__.py:__version__",
 ]
 update_changelog_on_bump = false
+
+[tool.pytest.ini_options]
+pythonpath = ["."]

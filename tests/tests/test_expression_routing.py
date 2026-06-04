@@ -97,6 +97,7 @@ def _mock_routing_response(function_name, function_args_dict):
     mock_choice.message = mock_message
     mock_response = MagicMock()
     mock_response.choices = [mock_choice]
+    mock_response.usage = None
     return mock_response
 
 
@@ -232,9 +233,10 @@ class TestExpressionMatchSkipsLLM:
             # LLM should NOT have been called
             mock_thread.assert_not_called()
 
-        next_node, params, latency_ms, msgs, tools, reasoning, confidence = result
+        next_node, params, latency_ms, msgs, tools, reasoning, confidence, usage_info = result
         assert next_node == "hindi_agent"
         assert confidence == 1.0
+        assert usage_info is None
         assert reasoning.startswith(_DETERMINISTIC_REASONING_PREFIX)
         assert latency_ms < 50  # should be near-instant
 
@@ -315,9 +317,10 @@ class TestFallThroughToLLM:
         with patch("asyncio.to_thread", new_callable=AsyncMock, return_value=mock_resp):
             result = await agent.decide_next_node_with_functions([{"role": "user", "content": "I want to book"}])
 
-        next_node, params, latency_ms, msgs, tools, reasoning, confidence = result
+        next_node, params, latency_ms, msgs, tools, reasoning, confidence, usage_info = result
         assert next_node == "booking"
         assert confidence == 0.9
+        assert usage_info is None
         assert not reasoning.startswith(_DETERMINISTIC_REASONING_PREFIX)
 
     @pytest.mark.asyncio
