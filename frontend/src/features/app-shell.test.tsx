@@ -6,6 +6,10 @@ import { AppShell } from "@/components/app-shell";
 import { CampaignControlWorkspace } from "@/features/campaigns/campaign-control-workspace";
 
 describe("AppShell", () => {
+  afterEach(() => {
+    window.localStorage.clear();
+  });
+
   it("renders all five workspace nav items", () => {
     render(
       <AppShell activeWorkspaceId="agents" showHealth={false}>
@@ -29,6 +33,20 @@ describe("AppShell", () => {
     await user.selectOptions(screen.getByLabelText("Local persona"), "marketing-manager");
 
     expect(screen.getByText("Default workspace: Campaigns")).toBeInTheDocument();
+  });
+
+  it("toggles and persists the color theme", async () => {
+    const user = userEvent.setup();
+    render(
+      <AppShell activeWorkspaceId="agents" showHealth={false}>
+        <div>Agent Builder Studio</div>
+      </AppShell>,
+    );
+
+    await user.click(screen.getByRole("button", { name: "Switch to dark theme" }));
+
+    expect(screen.getByRole("button", { name: "Switch to light theme" })).toBeInTheDocument();
+    expect(window.localStorage.getItem("bx-caller-theme")).toBe("dark");
   });
 });
 

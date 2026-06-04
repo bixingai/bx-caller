@@ -101,7 +101,16 @@ Add the nginx locations from
 
 ## Production
 
-On the server:
+Production is intended to deploy automatically to Tencent Cloud as the
+self-contained `BX Caller` tool mounted at:
+
+```text
+https://tools.bixingai.com/bx-caller
+```
+
+The production deployment still runs as a self-contained Docker tool: FastAPI
+API, Next.js web, and Redis behind the host `tools.bixingai.com` nginx vhost. On
+the server:
 
 ```bash
 mkdir -p /opt/bx-caller

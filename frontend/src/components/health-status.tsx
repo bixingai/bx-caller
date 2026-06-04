@@ -27,7 +27,7 @@ export function HealthStatus({ service = defaultService }: Readonly<{ service?: 
     return (
       <div className="flex items-center gap-2">
         <Badge tone="success">Backend connected</Badge>
-        <span className="text-xs text-slate-500">{health.checks.join(", ") || "ready"}</span>
+        <span className="text-xs text-slate-500 dark:text-slate-400">{health.checks.join(", ") || "ready"}</span>
       </div>
     );
   }
@@ -38,4 +38,3 @@ export function HealthStatus({ service = defaultService }: Readonly<{ service?: 
 
   return <Badge tone="danger">Backend unavailable</Badge>;
 }
-

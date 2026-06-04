@@ -33,3 +33,37 @@ textarea {
   font: inherit;
 }
 
+.dark {
+  color-scheme: dark;
+}
+
+.dark input,
+.dark select,
+.dark textarea {
+  border-color: #334155;
+  background: #0f172a;
+  color: #f8fafc;
+}
+
+.dark input::placeholder,
+.dark textarea::placeholder {
+  color: #64748b;
+}
+
+.dark .text-slate-500 {
+  color: #94a3b8;
+}
+
+.dark .text-slate-600,
+.dark .text-slate-700 {
+  color: #cbd5e1;
+}
+
+.dark .border-slate-100,
+.dark .border-slate-200 {
+  border-color: #1e293b;
+}
+
+.dark .divide-slate-100 > :not([hidden]) ~ :not([hidden]) {
+  border-color: #1e293b;
+}

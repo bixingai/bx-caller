@@ -1,13 +1,16 @@
 # bx-caller deployment
 
-`bx-caller` is a backend-only satellite for `tools.bixingai.com`.
+`bx-caller` is a self-contained launchable BixingAI tool for
+`tools.bixingai.com`, deployed to Tencent Cloud behind the shared portal.
 
 Production routing follows the same pattern as `wx-article-agent`:
 
 - portal owns login and sets the host-scoped `access_token` cookie
 - bx-caller verifies that cookie with the same `PORTAL_JWT_SECRET`
 - nginx strips `/bx-caller` before proxying API and WebSocket traffic
-- the container binds only to `127.0.0.1:8102`
+- frontend traffic keeps `/bx-caller` because Next.js is built with that base path
+- the API container binds only to `127.0.0.1:8102`
+- the web container binds only to `127.0.0.1:3102`
 
 ## Server setup
 
@@ -21,6 +24,14 @@ docker volume create bx-caller_logs_data
 ```
 
 Set `PORTAL_JWT_SECRET` to the exact value used by `bixingai-tools`.
+
+Production compose expects published images unless deployment automation
+overrides them:
+
+```text
+${REGISTRY:-docker.io}/pmtmyaggy/bx-caller-api:${IMAGE_TAG:-prod}
+${REGISTRY:-docker.io}/pmtmyaggy/bx-caller-web:${IMAGE_TAG:-prod}
+```
 
 If external telephony callbacks cannot carry the portal cookie, set
 `WEBSOCKET_ACCESS_TOKEN` and append `?token=<value>` to `/bx-caller/chat/v1/{agent_id}`
@@ -40,4 +51,3 @@ the tool in the portal:
     "status": "active",
 }
 ```
-
