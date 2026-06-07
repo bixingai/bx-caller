@@ -16,9 +16,9 @@ services:
       retries: 5
 
   api:
-    image: ${REGISTRY:-docker.io}/pmtmyaggy/bx-caller-api:${IMAGE_TAG:-prod}
+    image: ${REGISTRY:-docker.io}/${IMAGE_NAMESPACE:-pmtmyaggy}/bx-caller-api:${IMAGE_TAG:-prod}
     restart: unless-stopped
-    env_file: .env.prod
+    env_file: ${ENV_FILE:-.env.prod}
     environment:
       APP_ENV: production
       REDIS_URL: redis://redis:6379/0
@@ -35,7 +35,7 @@ services:
         condition: service_healthy
 
   web:
-    image: ${REGISTRY:-docker.io}/pmtmyaggy/bx-caller-web:${IMAGE_TAG:-prod}
+    image: ${REGISTRY:-docker.io}/${IMAGE_NAMESPACE:-pmtmyaggy}/bx-caller-web:${IMAGE_TAG:-prod}
     restart: unless-stopped
     environment:
       API_PROXY_TARGET: http://api:8000

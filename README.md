@@ -10,6 +10,7 @@ tool service:
 - bx-caller verifies that cookie with the same `PORTAL_JWT_SECRET`
 - each portal user gets an isolated Redis agent namespace
 - nginx mounts the service under `tools.bixingai.com/bx-caller/*`
+- frontend API calls and navigation remain under the `/bx-caller` path mount
 - external telephony WebSocket callbacks can use an optional shared callback token
 
 ## Architecture

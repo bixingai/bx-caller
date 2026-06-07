@@ -80,7 +80,6 @@ async def emitter(ws):
 
 
 def audio_callback(outdata, frames, time, status):
-
     try:
         data = audio_queue.get_nowait()
         data = data.reshape(-1, 1)
@@ -101,7 +100,6 @@ def start_audio_stream():
 
 
 async def play_audio():
-
     while True:
         try:
             global chunks

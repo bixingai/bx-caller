@@ -16,8 +16,7 @@ class CallResult:
 class TelephonyProvider(Protocol):
     name: str
 
-    def place_outbound_call(self, agent_id: str, to_number: str) -> CallResult | dict[str, str]:
-        ...
+    def place_outbound_call(self, agent_id: str, to_number: str) -> CallResult | dict[str, str]: ...
 
 
 def get_telephony_provider() -> TelephonyProvider:

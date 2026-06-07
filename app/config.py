@@ -45,8 +45,7 @@ class Settings(BaseSettings):
         lowered = v.strip().lower()
         if any(lowered.startswith(prefix) for prefix in _BANNED_SECRET_PREFIXES):
             raise ValueError(
-                "PORTAL_JWT_SECRET starts with a well-known placeholder. "
-                "Use the JWT_SECRET value from bixingai-tools."
+                "PORTAL_JWT_SECRET starts with a well-known placeholder. Use the JWT_SECRET value from bixingai-tools."
             )
         if len(v) < 32:
             raise ValueError("PORTAL_JWT_SECRET must be at least 32 characters for HS256.")
@@ -55,8 +54,7 @@ class Settings(BaseSettings):
     def model_post_init(self, __context) -> None:
         if self.app_env == "production" and self.dev_bypass_auth:
             raise ValueError(
-                "DEV_BYPASS_AUTH=1 is set with APP_ENV=production. "
-                "Unset DEV_BYPASS_AUTH or change APP_ENV."
+                "DEV_BYPASS_AUTH=1 is set with APP_ENV=production. Unset DEV_BYPASS_AUTH or change APP_ENV."
             )
 
 

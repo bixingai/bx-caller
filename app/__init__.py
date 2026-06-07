@@ -1,2 +1,1 @@
 """BixingAI caller satellite application."""
-
