@@ -13,4 +13,3 @@ def verify_portal_token(token: str) -> dict | None:
         )
     except jwt.InvalidTokenError:
         return None
-
