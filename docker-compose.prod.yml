@@ -21,6 +21,7 @@ services:
     env_file: ${ENV_FILE:-.env.prod}
     environment:
       APP_ENV: production
+      DEV_BYPASS_AUTH: "0"
       REDIS_URL: redis://redis:6379/0
       PORTAL_JWT_SECRET: ${PORTAL_JWT_SECRET}
       PORTAL_JWT_ALGORITHM: HS256
