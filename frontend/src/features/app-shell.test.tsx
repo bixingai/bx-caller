@@ -8,6 +8,7 @@ import { CampaignControlWorkspace } from "@/features/campaigns/campaign-control-
 describe("AppShell", () => {
   afterEach(() => {
     window.localStorage.clear();
+    vi.unstubAllEnvs();
   });
 
   it("renders all five workspace nav items", () => {
@@ -20,6 +21,21 @@ describe("AppShell", () => {
     for (const label of ["Executive", "Agents", "Campaigns", "Live", "Desk"]) {
       expect(screen.getByRole("link", { name: label })).toBeInTheDocument();
     }
+  });
+
+  it("keeps workspace navigation inside the bx-caller path mount", () => {
+    vi.stubEnv("NEXT_PUBLIC_BASE_PATH", "/bx-caller");
+
+    render(
+      <AppShell activeWorkspaceId="agents" showHealth={false}>
+        <div>Agent Builder Studio</div>
+      </AppShell>,
+    );
+
+    expect(screen.getByRole("link", { name: "Agents" })).toHaveAttribute(
+      "href",
+      "/bx-caller/agents",
+    );
   });
 
   it("switches local persona defaults to the matching workspace", async () => {

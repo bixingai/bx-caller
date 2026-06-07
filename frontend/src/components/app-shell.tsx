@@ -13,6 +13,7 @@ import {
 import { useEffect, useMemo, useState } from "react";
 
 import { cn } from "@/lib/utils";
+import { withBasePath } from "@/lib/base-path";
 import { HealthStatus } from "@/components/health-status";
 import { defaultWorkspaceForRole, personas, workspaces } from "@/services/workspaces";
 import type { PersonaRole, WorkspaceDefinition } from "@/types/workspace";
@@ -70,7 +71,7 @@ export function AppShell({
             return (
               <a
                 key={workspace.id}
-                href={workspace.href}
+                href={withBasePath(workspace.href)}
                 className={cn(
                   "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-50 hover:text-ink dark:text-slate-300 dark:hover:bg-slate-900 dark:hover:text-white",
                   workspace.id === activeWorkspaceId &&
