@@ -1,7 +1,7 @@
 ## Target Branch
 
-- [ ] This PR targets `develop`.
-- [ ] This branch was created from `develop`.
+- [ ] Feature/fix PR: this targets `develop` and branches from `develop`.
+- [ ] Release PR: this promotes `develop` to `master`.
 
 ## Change Type
 
@@ -21,5 +21,5 @@ List the focused checks run for this PR:
 
 ## Release Note
 
-Production release/deploy automation runs from `develop`. Feature branches must
-not deploy production directly.
+Production deployment automation runs only from `master`. Feature branches
+merge into `develop`; release PRs promote `develop` to `master`.
