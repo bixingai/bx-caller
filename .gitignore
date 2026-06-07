@@ -14,8 +14,8 @@ dist/
 downloads/
 eggs/
 .eggs/
-lib/
-lib64/
+/lib/
+/lib64/
 parts/
 sdist/
 var/
@@ -170,11 +170,17 @@ agent_data/**/mp3
 logs/
 agent_data/
 testing/
+output/
+.playwright-cli/
+api-dev*.log
+frontend/next-dev.log
+node_modules/
+frontend/node_modules/
+frontend/.next/
+frontend/tsconfig.tsbuildinfo
 
 test_3.wav
 
 # Graph agent exploration (temporary)
 scripts/
-docs/
 GRAPH_AGENT_GUIDE.md
-.env.example

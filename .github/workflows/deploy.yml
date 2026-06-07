@@ -1,0 +1,146 @@
+name: deploy
+
+on:
+  push:
+    branches: [develop]
+  workflow_dispatch: {}
+
+concurrency:
+  group: deploy-prod
+  cancel-in-progress: false
+
+env:
+  REGISTRY: ${{ vars.CONTAINER_REGISTRY || 'docker.io' }}
+  IMAGE_NAMESPACE: ${{ vars.IMAGE_NAMESPACE || 'pmtmyaggy' }}
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10.13"
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pytest pytest-asyncio
+
+      - name: Run backend tests
+        env:
+          PORTAL_JWT_SECRET: ci-only-secret-ci-only-secret-123456
+          DEV_BYPASS_AUTH: "1"
+        run: pytest
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install frontend dependencies
+        working-directory: frontend
+        run: npm ci
+
+      - name: Run frontend tests
+        working-directory: frontend
+        run: npm test -- --run
+
+      - name: Build frontend
+        working-directory: frontend
+        run: npm run build
+
+      - name: Typecheck frontend
+        working-directory: frontend
+        run: npm run typecheck
+
+  build-and-push:
+    needs: verify
+    runs-on: ubuntu-latest
+    outputs:
+      sha_short: ${{ steps.meta.outputs.sha_short }}
+      registry: ${{ steps.meta.outputs.registry }}
+      image_namespace: ${{ steps.meta.outputs.image_namespace }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - id: meta
+        run: |
+          echo "sha_short=$(git rev-parse --short HEAD)" >> "$GITHUB_OUTPUT"
+          echo "registry=${REGISTRY}" >> "$GITHUB_OUTPUT"
+          echo "image_namespace=${IMAGE_NAMESPACE}" >> "$GITHUB_OUTPUT"
+          echo "api_image=${REGISTRY}/${IMAGE_NAMESPACE}/bx-caller-api" >> "$GITHUB_OUTPUT"
+          echo "web_image=${REGISTRY}/${IMAGE_NAMESPACE}/bx-caller-web" >> "$GITHUB_OUTPUT"
+
+      - uses: docker/setup-buildx-action@v3
+
+      - uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ secrets.REGISTRY_USERNAME || secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.REGISTRY_PASSWORD || secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build & push API image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: |
+            ${{ steps.meta.outputs.api_image }}:prod
+            ${{ steps.meta.outputs.api_image }}:${{ steps.meta.outputs.sha_short }}
+          cache-from: type=gha,scope=api
+          cache-to: type=gha,mode=max,scope=api
+
+      - name: Build & push Web image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./frontend
+          push: true
+          build-args: |
+            NEXT_PUBLIC_BASE_PATH=/bx-caller
+          tags: |
+            ${{ steps.meta.outputs.web_image }}:prod
+            ${{ steps.meta.outputs.web_image }}:${{ steps.meta.outputs.sha_short }}
+          cache-from: type=gha,scope=web
+          cache-to: type=gha,mode=max,scope=web
+
+  deploy:
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Upload deployment files
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.TENCENT_CLOUD_HOST || secrets.SERVER_HOST }}
+          username: ${{ secrets.TENCENT_CLOUD_USER || secrets.SERVER_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          source: docker-compose.prod.yml,deploy/tencent-cloud-bootstrap.sh,deploy/tools.bixingai.com.bx-caller.conf
+          target: /opt/bx-caller/
+
+      - name: Pull image and restart stack
+        uses: appleboy/ssh-action@v1.0.3
+        env:
+          REGISTRY: ${{ needs.build-and-push.outputs.registry }}
+          IMAGE_NAMESPACE: ${{ needs.build-and-push.outputs.image_namespace }}
+          IMAGE_TAG: ${{ needs.build-and-push.outputs.sha_short }}
+          REGISTRY_USERNAME: ${{ secrets.REGISTRY_USERNAME || secrets.DOCKERHUB_USERNAME }}
+          REGISTRY_PASSWORD: ${{ secrets.REGISTRY_PASSWORD || secrets.DOCKERHUB_TOKEN }}
+        with:
+          host: ${{ secrets.TENCENT_CLOUD_HOST || secrets.SERVER_HOST }}
+          username: ${{ secrets.TENCENT_CLOUD_USER || secrets.SERVER_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          envs: REGISTRY,IMAGE_NAMESPACE,IMAGE_TAG,REGISTRY_USERNAME,REGISTRY_PASSWORD
+          script: |
+            set -e
+            cd /opt/bx-caller
+            chmod +x deploy/tencent-cloud-bootstrap.sh
+            export REGISTRY IMAGE_NAMESPACE IMAGE_TAG
+            deploy/tencent-cloud-bootstrap.sh
+            echo "Deploy OK: $IMAGE_TAG"
