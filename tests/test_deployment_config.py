@@ -20,3 +20,14 @@ def test_production_deploy_runs_only_from_master() -> None:
 
     assert "branches: [master]" in workflow
     assert "branches: [develop]" not in workflow
+
+
+def test_api_runtime_image_excludes_build_toolchain() -> None:
+    dockerfile = (Path(__file__).parents[1] / "Dockerfile").read_text()
+
+    assert "AS builder" in dockerfile
+    assert "AS runtime" in dockerfile
+
+    runtime = dockerfile.split("AS runtime", maxsplit=1)[1]
+    assert "build-essential" not in runtime
+    assert "python3-dev" not in runtime
