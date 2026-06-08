@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1.7
 
-FROM python:3.10.13-slim AS base
+FROM python:3.10.13-slim AS builder
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
@@ -8,21 +8,34 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
         build-essential \
-        curl \
-        ffmpeg \
         gcc \
         g++ \
         git \
-        libgomp1 \
         python3-dev \
     && rm -rf /var/lib/apt/lists/*
 
-WORKDIR /app
+WORKDIR /build
 
 COPY requirements.txt pyproject.toml README.md LICENSE ./
 RUN --mount=type=cache,target=/root/.cache/pip \
     pip install --upgrade pip setuptools wheel \
-    && pip install -r requirements.txt
+    && pip install --no-compile --prefix=/install -r requirements.txt
+
+FROM python:3.10.13-slim AS runtime
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        curl \
+        ffmpeg \
+        libgomp1 \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+COPY --from=builder /install /usr/local
 
 COPY app ./app
 COPY bolna ./bolna
