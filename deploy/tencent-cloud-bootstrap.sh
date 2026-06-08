@@ -23,31 +23,37 @@ if ! grep -q '^PORTAL_JWT_SECRET=.' "$ENV_FILE"; then
   exit 1
 fi
 
-if [ "${REGISTRY_USERNAME:-}" != "" ] && [ "${REGISTRY_PASSWORD:-}" != "" ]; then
-  echo "$REGISTRY_PASSWORD" | docker login "${REGISTRY:-docker.io}" -u "$REGISTRY_USERNAME" --password-stdin
-fi
-
 docker compose -f "$COMPOSE_FILE" --env-file "$ENV_FILE" config >/dev/null
 
-pulled=0
-for attempt in 1 2 3 4 5; do
-  if docker compose -f "$COMPOSE_FILE" --env-file "$ENV_FILE" pull; then
-    pulled=1
-    break
+if [ "${SKIP_IMAGE_PULL:-0}" = "1" ]; then
+  echo "Using preloaded container images"
+  docker compose -f "$COMPOSE_FILE" --env-file "$ENV_FILE" up -d --remove-orphans --pull never
+else
+  if [ "${REGISTRY_USERNAME:-}" != "" ] && [ "${REGISTRY_PASSWORD:-}" != "" ]; then
+    echo "$REGISTRY_PASSWORD" | docker login "${REGISTRY:-docker.io}" -u "$REGISTRY_USERNAME" --password-stdin
   fi
-  echo "pull attempt $attempt failed, waiting 15s..."
-  sleep 15
-done
 
-if [ "$pulled" != "1" ]; then
-  echo "image pull failed after 5 attempts" >&2
-  exit 1
+  pulled=0
+  for attempt in 1 2 3 4 5; do
+    if docker compose -f "$COMPOSE_FILE" --env-file "$ENV_FILE" pull; then
+      pulled=1
+      break
+    fi
+    echo "pull attempt $attempt failed, waiting 15s..."
+    sleep 15
+  done
+
+  if [ "$pulled" != "1" ]; then
+    echo "image pull failed after 5 attempts" >&2
+    exit 1
+  fi
+
+  docker compose -f "$COMPOSE_FILE" --env-file "$ENV_FILE" up -d --remove-orphans
 fi
 
-docker compose -f "$COMPOSE_FILE" --env-file "$ENV_FILE" up -d --remove-orphans
-
 for attempt in 1 2 3 4 5 6 7 8 9 10; do
-  if curl -fsS "$HEALTH_API_URL" >/dev/null && curl -fsS "$HEALTH_WEB_URL" >/dev/null; then
+  if curl --noproxy "*" -fsS "$HEALTH_API_URL" >/dev/null &&
+    curl --noproxy "*" -fsS "$HEALTH_WEB_URL" >/dev/null; then
     docker image prune -f >/dev/null
     echo "Tencent Cloud deploy OK"
     exit 0
