@@ -7,10 +7,10 @@ Status: Active
 
 ```text
 master
-  Upstream baseline and stable history. Do not start feature work here.
+  Stable production branch. Release promotions deploy from here.
 
 develop
-  Integration and official release branch. Production releases deploy from here.
+  Integration branch. Feature work merges here before release promotion.
 
 codex/*
   Codex work branches. Branch from develop and merge back through review.
@@ -31,7 +31,9 @@ test/*
 3. Keep changes scoped to one product or harness concern.
 4. Run focused verification before review.
 5. Open a PR back to `develop`.
-6. Release/deploy from `develop` after integration verification passes.
+6. After integration verification passes, open a release PR from `develop` to
+   `master`.
+7. Merge the release PR to trigger production deployment from `master`.
 
 ## Commit Organization
 
@@ -63,6 +65,6 @@ codex/telephony-provider-adapters
 
 ## Release Rule
 
-`develop` is the only branch that should trigger production release/deploy
-automation for bx-caller. Feature branches may run tests and preview checks, but
-must not deploy production.
+`master` is the only branch that should trigger production deployment
+automation for bx-caller. Feature branches and `develop` may run tests and
+preview checks, but must not deploy production.

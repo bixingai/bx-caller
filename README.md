@@ -153,7 +153,8 @@ Docker/compose files.
 
 Branching rules live in
 `docs/development/branching-strategy.md`. In short, branch feature work from
-`develop`, merge back into `develop`, and release/deploy from `develop`.
+`develop`, merge back into `develop`, then promote releases to `master`.
+Production deployment runs only after the release PR is merged into `master`.
 
 MVP frontend notes:
 
